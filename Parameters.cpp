@@ -1,16 +1,16 @@
 #include "Parameters.hpp"
-//#define S 1
 
 bool condition(const Point& x, double alpha,double omega,std::function<double(Point)> f,Grad G){
     return f(x)-f(x-alpha*G(x))>omega*alpha*std::pow(norm(G(x)),2); //check of the condition in Armijo rule and returns true if satisfied
 }
 
-template <strategy S>
+/*
+template <method M>
 double calcAlphak(const Parameters& p,double k,const Point& x){   //computes the alphaK at the k-th iteration dipending on the strategy choosen
     double alphaK;
-    if constexpr (S==strategy::Inverse)         //if the choosen strategy is inverse decay camputes alphaK accordingly
+    if constexpr (M==method::heavyBall || M==method::Nesterov)         //if the choosen strategy is inverse decay camputes alphaK accordingly
         alphaK=p.getAlpha0()/(1+p.getMu()*k);
-    else if constexpr (S==strategy::Armijo){   //else computes alphaK using Armijo rule
+    else if constexpr (M==method::Armijo){   //else computes alphaK using Armijo rule
         alphaK=p.getAlpha0();
         while(!condition(x, alphaK,p.getOmega(),p.getF(),p.getG()) && alphaK>1e-3){  //check of the condition of arrest
             alphaK/=2;
@@ -18,33 +18,56 @@ double calcAlphak(const Parameters& p,double k,const Point& x){   //computes the
     }
     return alphaK;
 }
+*/
 
-
+template <method M>
 Point Minimum(const Parameters& p){
     Grad G=p.getG();    //gradient of the function
-   double alphaK=p.getAlpha0();
-    Point x0=p.getX0(),xN=x0-alphaK*G(x0);  //first 2 iterate of the method
-    bool condition=true;
+    double alphaK=p.getAlpha0();
+    Point x0=p.getX0(),x1=x0-alphaK*G(x0),x2(1.0,1.0);  //first 2 iterate of the method
+    Point y(0.0,0.0); //for nesterov and heavy-ball method
+    bool condizione=true;
     double k=0;  //counter of iterations
- 
-    const strategy S=strategy::Inverse;  //defines the strategy
+    //const method M=method::heavyBall;
 
-
-    while(condition){
+    while(condizione){
         k++;           //updates the counter
 
-        alphaK=calcAlphak<S>(p,k,x0);    //call the functon to compute alphaK
-        xN=x0-alphaK*(G(x0));            //update the guess of the minimum
+        if constexpr (M==method::Armijo){ //update the guess of the minimum with the right method
+            alphaK=p.getAlpha0();
+            while(!condition(x1, alphaK,p.getOmega(),p.getF(),p.getG())){  //check of the condition of arrest
+                alphaK/=2;
+            }
 
-        if(norm(xN-x0)<p.getTolls() || norm(G(xN))<p.getTollr() || k>p.getMaxIter()){  //check of the stop condition
-            condition=false;
+            x2=x1-alphaK*(G(x1));                        
         }
-        x0=xN;      //update of the previous guess before restart
+        else if constexpr (M==method::heavyBall){
+            alphaK=p.getAlpha0()/(1+p.getMu()*k);
+
+            x2=x1-alphaK*(G(x1))+p.getNu()*(x1-x0);
+        }
+        else{
+            alphaK=p.getAlpha0()/(1+p.getMu()*k);
+
+            y=x1+p.getNu()*(x1-x0);
+            x2=y-alphaK*(G(y));
+        }
+ 
+
+        if(norm(x2-x1)<p.getTolls() || norm(G(x2))<p.getTollr() || k>p.getMaxIter()){  //check of the stop condition
+            condizione=false;
+        }
+        x1=x2;
+        x0=x1;      //update of the previous guesses before restart
     }
 
     std::cout<<"iterate: "<< k<<std::endl;  //shows the number of iterations
-    return xN;
+    return x2;
 }
+
+template Point Minimum<method::Armijo>(const Parameters& p);
+template Point Minimum<method::heavyBall>(const Parameters& p);
+template Point Minimum<method::Nesterov>(const Parameters& p);
 
 
 void Parameters::print() const{   //displaies all the parameters
