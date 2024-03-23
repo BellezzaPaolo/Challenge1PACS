@@ -4,22 +4,6 @@ bool condition(const Point& x, double alpha,double omega,std::function<double(Po
     return f(x)-f(x-alpha*G(x))>omega*alpha*std::pow(norm(G(x)),2); //check of the condition in Armijo rule and returns true if satisfied
 }
 
-/*
-template <method M>
-double calcAlphak(const Parameters& p,double k,const Point& x){   //computes the alphaK at the k-th iteration dipending on the strategy choosen
-    double alphaK;
-    if constexpr (M==method::heavyBall || M==method::Nesterov)         //if the choosen strategy is inverse decay camputes alphaK accordingly
-        alphaK=p.getAlpha0()/(1+p.getMu()*k);
-    else if constexpr (M==method::Armijo){   //else computes alphaK using Armijo rule
-        alphaK=p.getAlpha0();
-        while(!condition(x, alphaK,p.getOmega(),p.getF(),p.getG()) && alphaK>1e-3){  //check of the condition of arrest
-            alphaK/=2;
-        }
-    }
-    return alphaK;
-}
-*/
-
 template <method M>
 Point Minimum(const Parameters& p){
     Grad G=p.getG();    //gradient of the function
