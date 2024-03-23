@@ -26,14 +26,14 @@ Point Minimum(const Parameters& p){
             x2=x1-alphaK*(G(x1));                        
         }
         else if constexpr (M==method::heavyBall){
-            alphaK=p.getAlpha0()/(1+p.getMu()*k);
+            alphaK=p.getAlpha0()/(1+p.getMu()*k);  //compute new alphaK
 
-            x2=x1-alphaK*(G(x1))+p.getNu()*(x1-x0);
+            x2=x1-alphaK*(G(x1))+p.getNu()*(x1-x0);  //update x according to heavyBall rule
         }
         else{
-            alphaK=p.getAlpha0()/(1+p.getMu()*k);
+            alphaK=p.getAlpha0()/(1+p.getMu()*k);   //compute new alphaK
 
-            y=x1+p.getNu()*(x1-x0);
+            y=x1+p.getNu()*(x1-x0);  //update x according to Nesterov rule
             x2=y-alphaK*(G(y));
         }
  
