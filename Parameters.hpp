@@ -41,8 +41,6 @@ class Parameters{ // deffinition of the class conteining all the parameters of t
 
 bool condition(const Point& x, double alpha,double omega,std::function<double(Point)> f,Grad G);  //checks if the condition of Armijo is satisfied
 
-//template <method M>
-//double calcAlphak(const Parameters& p,double k,const Point& x); //computes the alphaK at the k-th iteration dipending on the strategy choosen
 
 template <method M>
 Point Minimum(const Parameters& p);  //main function that computes the minimum
