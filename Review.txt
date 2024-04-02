@@ -1,0 +1,5 @@
+README could have been definitely improved.
+
+Maybe I would have put the main methods in a file name parameter. This might be a bit misleading.
+
+The code seems overall clear and well made, however the muparser implementation is missing.
